@@ -111,3 +111,25 @@ footer p{max-width:100ch}
 @media (prefers-reduced-motion:no-preference){.hs{transition:fill .25s}}
 .histwrap{overflow-x:auto}
 #hist{min-width:760px}
+.demo{padding-top:48px}
+.demo-tools{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:14px 0 6px}
+.pchips{display:flex;gap:6px;flex-wrap:wrap}
+.pchip{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+.pchip[aria-pressed="true"]{border-color:var(--ink);background:var(--panel);font-weight:600}
+.demo-read{max-width:78ch;margin:8px 0 4px}
+#demo-plot{width:100%;height:auto;display:block;min-width:560px}
+.sub3{font-family:var(--f-display);font-size:20px;margin:28px 0 2px}
+.matrix{width:100%;max-width:760px;border-collapse:collapse;font-variant-numeric:tabular-nums;margin-top:8px}
+.matrix th,.matrix td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
+.matrix thead th{color:var(--muted);font-size:12px;font-weight:500}
+.matrix tbody th{font-weight:500;white-space:nowrap}
+.matrix .chip{display:inline-block;margin-right:8px;vertical-align:-1px}
+.matrix .r2{color:var(--ink2)}
+.rbar{display:grid;grid-template-columns:4.5ch 1fr;gap:8px;align-items:center}
+.rbar .rv{font-size:13px;text-align:right}
+.rtr{position:relative;height:10px;background:var(--none);border-radius:2px;min-width:70px}
+.rtr::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink2)}
+.rtr b{position:absolute;top:0;bottom:0;border-radius:2px}
+.demo-more{margin-top:14px}
+.demo-more summary{cursor:pointer;color:var(--ink2)}
+.demo .note{margin-top:20px}

@@ -77,6 +77,27 @@
     <div id="compare-result" aria-live="polite"></div>
   </section>
 
+  <section class="demo" aria-labelledby="demo-titre">
+    <h2 id="demo-titre">Le vote de 2026 selon le profil des circonscriptions</h2>
+    <p class="meta">Chaque point est une des 127 circonscriptions. Les trois facteurs viennent du Recensement de 2021.</p>
+    <div class="demo-tools">
+      <div class="seg" id="demo-x" role="group" aria-label="Facteur socioéconomique"></div>
+      <div class="pchips" id="demo-p" role="group" aria-label="Parti affiché"></div>
+    </div>
+    <p id="demo-read" class="demo-read" aria-live="polite"></p>
+    <div class="histwrap"><svg id="demo-plot" role="img" aria-label="Nuage de points : vote du parti choisi selon le facteur choisi, par circonscription"></svg></div>
+    <p class="hint">Couleur d'un point : parti élu dans la circonscription. Trait : droite de tendance du parti sélectionné.</p>
+    <h3 class="sub3">Les trois facteurs en un coup d'œil</h3>
+    <p class="hint">Corrélation (r) entre la part des votes d'un parti et chaque facteur : une barre vers la droite signifie que le parti fait mieux là où le facteur est élevé, vers la gauche, qu'il fait moins bien.</p>
+    <table id="demo-matrix" class="matrix"></table>
+    <details class="demo-more">
+      <summary>Chaque facteur, les deux autres tenus constants</summary>
+      <p class="hint">Régression linéaire de la part des votes sur la scolarité, le revenu et l'âge ensemble; coefficients en points de vote par écart-type du facteur. Les trois facteurs étant liés entre eux (scolarité et revenu : r = 0,64; scolarité et âge : r = −0,50), un effet peut changer de signe une fois les autres pris en compte.</p>
+      <table id="demo-beta" class="matrix beta"></table>
+    </details>
+    <p class="note">À lire avec prudence. Il s'agit de moyennes par circonscription : on ne peut pas en conclure comment votent les personnes diplômées, aisées ou âgées (erreur écologique). Le revenu est le <em>revenu total moyen</em> des 15 ans et plus en 2020 (salaires, prestations, placements), pas un salaire. La scolarité porte sur les 25–64 ans. Le profil de 2021 est rattaché aux frontières de 2026 et les 127 points ne sont pas pondérés par la population.</p>
+  </section>
+
   <section class="hist" aria-labelledby="hist-titre">
     <div class="hist-head">
       <h2 id="hist-titre">Votes et sièges au fil du temps</h2>
@@ -94,11 +115,13 @@
 <footer>
   <p><strong>Sources.</strong> Résultats 1867–2022 : <a href="https://github.com/zacktayloruwo/atlas-canada-elections">Atlas of Canadian Elections</a> (Zack Taylor, Western University), qui réconcilie notamment les données de la Bibliothèque de l'Assemblée nationale, de l'Atlas des élections au Québec (Fondation Lionel-Groulx, P. Drouilly) et d'Élections Québec. Frontières historiques : même atlas, simplifiées pour le web. Résultats 2026 et circonscriptions de 2026 : <a href="https://github.com/AurelienNicosiaULaval/donnees-bleues-elections-qc">Données bleues</a> (A. Nicosia, Université Laval), à partir du fil de résultats d'Élections Québec.</p>
   <p>Comprend des données ouvertes octroyées sous la licence d'utilisation des données ouvertes du directeur général des élections disponible à l'adresse Web dgeq.org. L'octroi de la licence n'implique aucune approbation par le directeur général des élections de l'utilisation des données ouvertes qui en est faite.</p>
+  <p>Profil socioéconomique des circonscriptions de 2026 : Élections Québec, compilation du Recensement de 2021 (adapté de Statistique Canada, profils semi-personnalisés du recensement de 2021, produits P001181 et P0001184; utilisé sous la licence ouverte de Statistique Canada; cette adaptation n'est pas officiellement approuvée par Statistique Canada).</p>
   <p><strong>Notes.</strong> Les « votes » sont les bulletins valides; la participation est calculée sur les circonscriptions disputées (bulletins valides ÷ inscrits). Avant 1944, le droit de vote était restreint (les femmes l'obtiennent en 1940) et de nombreuses circonscriptions sont remportées par acclamation. Le Parti conservateur (historique) précède le Parti conservateur du Québec actuel; ce sont des partis distincts. L'historique d'une circonscription suit son <em>nom</em> : les frontières ont changé.</p>
 </footer>
 <div id="tip" class="tip" role="tooltip" hidden></div>
 <script src="vendor/d3.min.js"></script>
 <script src="vendor/topojson-client.min.js"></script>
 <script src="js/app.js"></script>
+<script src="js/demo.js"></script>
 </body>
 </html>

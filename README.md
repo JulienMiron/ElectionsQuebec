@@ -17,6 +17,8 @@ Pour le publier : GitHub → Settings → Pages → déployer depuis la branche 
 | 1867–2022 | [Atlas of Canadian Elections](https://github.com/zacktayloruwo/atlas-canada-elections) (Zack Taylor, Western) | résultats par candidat et circonscription, frontières historiques |
 | 2026 | [Données bleues](https://github.com/AurelienNicosiaULaval/donnees-bleues-elections-qc) (A. Nicosia, U. Laval), d'après Élections Québec | résultats du 5 octobre 2026 (état du 6 octobre, 15 h 16), carte 2026 |
 
+| 2026 | [Élections Québec, portrait socioéconomique](https://docs.electionsquebec.qc.ca/PRO/6a58edde4eab9/statistiques-recensement-2021-CEP2026.xls) (adapté de Statistique Canada, Recensement 2021; licence ouverte de Statistique Canada) | scolarité, revenu et âge par circonscription (section « profil des circonscriptions ») |
+
 Les résultats 2026 sont ceux du fil d'Élections Québec au moment de la collecte; à revalider après la proclamation. Vérification : votes valides, inscrits et sièges 2012–2022 identiques entre les deux sources.
 
 Regénérer les fichiers de `data/` :
@@ -24,6 +26,8 @@ Regénérer les fichiers de `data/` :
 ```sh
 scripts/fetch_sources.sh                                   # clone les deux sources dans ./sources
 python3 scripts/build_data.py                              # pandas + pyarrow
+# placer le XLS d'Élections Québec dans sources/statistiques-recensement-2021-CEP2026.xls, puis :
+python3 scripts/build_demo.py                              # numpy + xlrd
 TOOLS=<dossier avec mapshaper et topojson-client> TMPGEO=/tmp/geo node scripts/build_geo.mjs
 ```
 
