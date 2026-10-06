@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Élections québécoises, 1867–2026</title>
+<meta name="description" content="Tous les résultats des élections générales québécoises depuis 1867 : sièges, votes, carte des circonscriptions sur les frontières de l'époque.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Élections québécoises</h1>
+    <p class="lede">Les 44 élections générales depuis 1867, circonscription par circonscription, sur les frontières de chaque époque.</p>
+  </div>
+  <button id="theme" class="ghost" type="button" aria-label="Changer de thème">Thème</button>
+</header>
+
+<nav class="frise" aria-label="Choisir une élection">
+  <div class="frise-scroll" id="frise" role="group"></div>
+  <p class="frise-help">Hauteur de chaque barre : répartition des sièges. Flèches ← → pour changer d'élection.</p>
+</nav>
+
+<main>
+  <section class="elec" aria-labelledby="elec-titre">
+    <div class="elec-head">
+      <h2 id="elec-titre"></h2>
+      <p id="elec-meta" class="meta"></p>
+      <p id="elec-note" class="note" hidden></p>
+    </div>
+    <div class="grid">
+      <figure class="map-wrap">
+        <div class="map-tools">
+          <span id="map-cap" class="cap"></span>
+          <span class="zoombtns" role="group" aria-label="Zoom de la carte">
+            <button data-z="all" class="ghost" type="button">Québec</button>
+            <button data-z="mtl" class="ghost" type="button">Montréal</button>
+            <button data-z="qc" class="ghost" type="button">Ville de Québec</button>
+          </span>
+        </div>
+        <svg id="map" role="img" aria-label="Carte des circonscriptions colorées selon le parti élu"></svg>
+        <figcaption class="map-leg">Couleur : parti élu. Teinte plus pâle : course serrée. Hachures : élection par acclamation. Cliquer sur une circonscription pour le détail.</figcaption>
+      </figure>
+      <div class="side">
+        <svg id="hemi" role="img" aria-label="Hémicycle des sièges"></svg>
+        <table id="res" class="res">
+          <caption class="sr">Résultats par parti</caption>
+          <thead><tr><th scope="col">Parti</th><th scope="col">Votes</th><th scope="col">Sièges</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <section id="riding" class="riding" aria-live="polite"></section>
+  </section>
+
+  <section class="hist" aria-labelledby="hist-titre">
+    <div class="hist-head">
+      <h2 id="hist-titre">Votes et sièges au fil du temps</h2>
+      <div class="seg" role="group" aria-label="Mesure affichée">
+        <button type="button" data-m="s" aria-pressed="true">Sièges</button>
+        <button type="button" data-m="v" aria-pressed="false">Votes</button>
+      </div>
+    </div>
+    <p class="meta" id="hist-sub"></p>
+    <div class="histwrap"><svg id="hist" role="img" aria-label="Répartition des sièges ou des votes par parti, pour chaque élection"></svg></div>
+    <div id="legend" class="legend"></div>
+  </section>
+</main>
+
+<footer>
+  <p><strong>Sources.</strong> Résultats 1867–2022 : <a href="https://github.com/zacktayloruwo/atlas-canada-elections">Atlas of Canadian Elections</a> (Zack Taylor, Western University), qui réconcilie notamment les données de la Bibliothèque de l'Assemblée nationale, de l'Atlas des élections au Québec (Fondation Lionel-Groulx, P. Drouilly) et d'Élections Québec. Frontières historiques : même atlas, simplifiées pour le web. Résultats 2026 et circonscriptions de 2026 : <a href="https://github.com/AurelienNicosiaULaval/donnees-bleues-elections-qc">Données bleues</a> (A. Nicosia, Université Laval), à partir du fil de résultats d'Élections Québec.</p>
+  <p>Comprend des données ouvertes octroyées sous la licence d'utilisation des données ouvertes du directeur général des élections disponible à l'adresse Web dgeq.org. L'octroi de la licence n'implique aucune approbation par le directeur général des élections de l'utilisation des données ouvertes qui en est faite.</p>
+  <p><strong>Notes.</strong> Les « votes » sont les bulletins valides; la participation est calculée sur les circonscriptions disputées (bulletins valides ÷ inscrits). Avant 1944, le droit de vote était restreint (les femmes l'obtiennent en 1940) et de nombreuses circonscriptions sont remportées par acclamation. Le Parti conservateur (historique) précède le Parti conservateur du Québec actuel; ce sont des partis distincts. L'historique d'une circonscription suit son <em>nom</em> : les frontières ont changé.</p>
+</footer>
+<div id="tip" class="tip" role="tooltip" hidden></div>
+<script src="vendor/d3.min.js"></script>
+<script src="vendor/topojson-client.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
