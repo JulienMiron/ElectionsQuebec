@@ -31,6 +31,13 @@
       <p id="elec-meta" class="meta"></p>
       <p id="elec-note" class="note" hidden></p>
     </div>
+    <div class="view-tools">
+      <div class="seg" role="group" aria-label="Résultats affichés sur la carte et l'hémicycle">
+        <button type="button" data-view="real" aria-pressed="true">Réel</button>
+        <button type="button" data-view="sim" aria-pressed="false">Simulé</button>
+      </div>
+      <p id="view-hint" class="hint"></p>
+    </div>
     <div class="grid">
       <figure class="map-wrap">
         <div class="map-tools">
@@ -48,12 +55,20 @@
         <svg id="hemi" role="img" aria-label="Hémicycle des sièges"></svg>
         <table id="res" class="res">
           <caption class="sr">Résultats par parti</caption>
-          <thead><tr><th scope="col">Parti</th><th scope="col">Votes</th><th scope="col">Sièges</th></tr></thead>
+          <thead><tr><th scope="col">Parti</th><th scope="col">Votes</th><th scope="col" id="res-seats-h">Sièges</th><th scope="col">Vers</th></tr></thead>
           <tbody></tbody>
         </table>
+        <p class="hint">Vers : où vont les votes du parti lorsqu’il est éliminé dans la simulation par élimination.</p>
       </div>
     </div>
     <section id="riding" class="riding" aria-live="polite"></section>
+  </section>
+
+  <section class="compare" aria-labelledby="compare-title">
+    <h2 id="compare-title">Comparer les modes de scrutin</h2>
+    <p class="meta" id="compare-intro">Scrutin réel à un tour et simulation par élimination pour l’élection sélectionnée.</p>
+    <p class="hint">La simulation regroupe les votes par parti et applique le même transfert (colonne « Vers » du tableau des résultats) dans toutes les circonscriptions. Les partis sont éliminés du moins au plus populaire; leurs votes suivent les destinations choisies, en sautant les partis absents ou déjà éliminés. Par défaut, et dès qu’aucune destination n’est encore active, les votes sont épuisés. En cas d’égalité, l’ordre d’affichage des partis sert de départage technique. Les résultats historiques ne contiennent pas les véritables choix de deuxième préférence. Les circonscriptions remportées par acclamation conservent leur élu historique.</p>
+    <div id="compare-result" aria-live="polite"></div>
   </section>
 
   <section class="hist" aria-labelledby="hist-titre">

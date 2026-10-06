@@ -9,7 +9,8 @@ const cache = {};
 const J = u => (cache[u] ??= fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); }));
 const W = 800, H = 840;
 
-const S = { els: [], parties: {}, lin: {}, i: 0, rid: null, metric: "s", data: null, geo: null };
+const S = { els: [], parties: {}, lin: {}, i: 0, rid: null, metric: "s", data: null, geo: null, transfers: {}, view: "real", sim: null };
+const simOn = () => S.view === "sim" && !!S.sim;
 const tip = $("#tip");
 function showTip(html, ev) {
   tip.innerHTML = html; tip.hidden = false;
@@ -80,10 +81,22 @@ function zoomTo(k) {
   }
   svg.transition().duration(500).call(zoom.transform, tr);
 }
-function riskStyle(r) {
-  if (!r || !r.w) return {fill: "var(--none)", op: 1};
-  const op = r.a || r.m == null ? 1 : 0.5 + 0.5 * Math.min(r.m, 30) / 30;
-  return {fill: col(r.w), op};
+function outcome(r) {
+  if (!r) return null;
+  if (simOn()) { const s = S.sim.by.get(r.id); if (s) return {w: s.w, m: s.m, a: r.a}; }
+  return {w: r.w, m: r.m, a: r.a};
+}
+function riskStyle(o) {
+  if (!o || !o.w) return {fill: "var(--none)", op: 1};
+  const op = o.a || o.m == null ? 1 : 0.5 + 0.5 * Math.min(o.m, 30) / 30;
+  return {fill: col(o.w), op};
+}
+function paintMap() {
+  const e = S.els[S.i];
+  gBase.selectAll("path")
+    .style("fill", d => riskStyle(outcome(S.byId.get(d.id))).fill)
+    .style("fill-opacity", d => riskStyle(outcome(S.byId.get(d.id))).op);
+  $("#map-cap").textContent = `Carte électorale de ${e.ro === 2026 ? "2026" : e.ro}` + (simOn() ? " · simulation" : "");
 }
 async function drawMap() {
   const e = S.els[S.i];
@@ -96,8 +109,6 @@ async function drawMap() {
   const all = sel.enter().append("path").merge(sel);
   all.attr("d", pathGen)
     .attr("class", d => (byId.get(d.id) ? "hasdata hs" : "hs") + (d.id === S.rid ? " sel" : ""))
-    .style("fill", d => riskStyle(byId.get(d.id)).fill)
-    .style("fill-opacity", d => riskStyle(byId.get(d.id)).op)
     .on("mousemove", (ev, d) => { const r = byId.get(d.id); if (r) showTip(ridingTip(r), ev); })
     .on("mouseleave", hideTip)
     .on("click", (ev, d) => { if (byId.get(d.id)) selectRiding(d.id); });
@@ -106,20 +117,30 @@ async function drawMap() {
   const a = gAcc.selectAll("path").data(acc, d => d.id);
   a.exit().remove();
   a.enter().append("path").merge(a).attr("d", pathGen).style("fill", "url(#hatch)");
-  $("#map-cap").textContent = `Carte électorale de ${e.ro === 2026 ? "2026" : e.ro}`;
+  paintMap();
 }
 function ridingTip(r) {
   const w = r.c.find(x => x[5]);
   if (!w) return `<b>${esc(r.n)}</b><br>Aucun élu`;
   const extra = r.a ? "Élu par acclamation" : (r.m != null ? `Écart : ${r.m.toLocaleString("fr-CA")} pts` : "");
-  return `<b>${esc(r.n)}</b><br>${esc(w[0])}<br>${esc(w[2] || pname(w[1]))}<br>${extra}`;
+  const real = `<b>${esc(r.n)}</b><br>${esc(w[0])}<br>${esc(w[2] || pname(w[1]))}<br>${extra}`;
+  const s = simOn() && !r.a && S.sim.by.get(r.id);
+  if (!s) return real;
+  const diff = s.w !== r.w ? ` (réel : ${esc(pname(r.w))})` : "";
+  return `<b>${esc(r.n)}</b><br>Simulation : ${esc(pname(s.w))}${diff}<br>${s.m != null ? `Écart final : ${s.m.toLocaleString("fr-CA")} pts` : ""}`;
 }
 
 /* ---------- hémicycle ---------- */
+function seatCounts(e) {
+  if (simOn()) return {par: S.sim.seats, N: S.sim.total, label: `${S.sim.total} sièges simulés`};
+  const par = {}; ORDER.forEach(c => { if (e.par[c]) par[c] = e.par[c].s; });
+  return {par, N: e.seats, label: `${e.seats} sièges`};
+}
 function drawHemi(e) {
   const h = d3.select("#hemi").attr("viewBox", "-4 -18 468 272");
   h.selectAll("*").remove();
-  const N = e.seats, R = N <= 70 ? 4 : N <= 100 ? 5 : 6;
+  const {par, N, label} = seatCounts(e);
+  const R = N <= 70 ? 4 : N <= 100 ? 5 : 6;
   const cx = 230, cy = 238, rin = 100, rout = 214;
   const rows = d3.range(R).map(i => rin + (rout - rin) * i / (R - 1));
   const sumR = d3.sum(rows);
@@ -133,18 +154,18 @@ function drawHemi(e) {
     seats.push({th, r, x: cx + r * Math.cos(th), y: cy - r * Math.sin(th)});
   }));
   seats.sort((a, b) => b.th - a.th || a.r - b.r);
-  const ps = ORDER.filter(c => e.par[c] && e.par[c].s > 0).sort((a, b) => e.par[b].s - e.par[a].s || ORDER.indexOf(a) - ORDER.indexOf(b));
+  const ps = Object.keys(par).filter(c => par[c] > 0).sort((a, b) => par[b] - par[a] || ORDER.indexOf(a) - ORDER.indexOf(b) || a.localeCompare(b));
   const owners = [];
-  ps.forEach(c => d3.range(e.par[c].s).forEach(() => owners.push(c)));
+  ps.forEach(c => d3.range(par[c]).forEach(() => owners.push(c)));
   h.selectAll("circle").data(seats).join("circle").attr("class", "hs")
     .attr("cx", d => d.x).attr("cy", d => d.y).attr("r", rad)
     .style("fill", (d, i) => owners[i] ? col(owners[i]) : "var(--none)")
-    .on("mousemove", (ev, d) => { const i = seats.indexOf(d), c = owners[i]; if (c) showTip(`<b>${esc(pname(c))}</b><br>${e.par[c].s} sièges`, ev); })
+    .on("mousemove", (ev, d) => { const i = seats.indexOf(d), c = owners[i]; if (c) showTip(`<b>${esc(pname(c))}</b><br>${par[c]} sièges${simOn() ? " simulés" : ""}`, ev); })
     .on("mouseleave", hideTip);
   h.append("text").attr("x", cx).attr("y", cy - 34).attr("text-anchor", "middle")
     .style("font", "700 34px var(--f-display)").style("fill", "var(--ink)").text(e.y);
   h.append("text").attr("x", cx).attr("y", cy - 10).attr("text-anchor", "middle")
-    .style("font", "400 13px var(--f-body)").style("fill", "var(--ink2)").text(`${e.seats} sièges`);
+    .style("font", "400 13px var(--f-body)").style("fill", "var(--ink2)").text(label);
   if (N > 2) {
     h.append("line").attr("x1", cx).attr("x2", cx).attr("y1", cy - rout - rad - 4).attr("y2", cy - rin + rad + 4)
       .style("stroke", "var(--ink2)").style("stroke-dasharray", "2 3").style("stroke-width", 1);
@@ -157,18 +178,139 @@ function drawHemi(e) {
 function drawTable(e) {
   const codes = ORDER.filter(c => e.par[c] && (e.par[c].v > 0 || e.par[c].s > 0))
     .sort((a, b) => (a === "IND" || a === "AUT" ? 1 : 0) - (b === "IND" || b === "AUT" ? 1 : 0) || e.par[b].v - e.par[a].v);
+  const sc = seatCounts(e);
+  const simCodes = comparisonParties(), prefs = transferPrefs(e);
+  [...Object.keys(sc.par).filter(c => sc.par[c] > 0), ...simCodes].forEach(c => { if (!codes.includes(c)) codes.push(c); });
+  $("#res-seats-h").textContent = simOn() ? "Sièges simulés" : "Sièges";
   const tb = $("#res tbody");
   tb.innerHTML = codes.map(c => {
-    const p = e.par[c], vs = p.v / e.valid * 100, ss = p.s / e.seats * 100;
+    const p = e.par[c] || {v: 0, s: 0}, s = sc.par[c] || 0, vs = p.v / e.valid * 100, ss = s / sc.N * 100;
     let name = esc(pname(c));
     if (c === "AUT" && e.det) {
       name = `<details><summary>${name}</summary><ul class="det">` + Object.entries(e.det).map(([k, v]) =>
         `<li><span>${esc(k)}</span><span>${v.s ? v.s + " siège" + (v.s > 1 ? "s · " : " · ") : ""}${pct(v.v / e.valid * 100)}</span></li>`).join("") + "</ul></details>";
     }
+    const to = simCodes.includes(c)
+      ? `<select class="to" data-party="${esc(c)}" aria-label="Destination des votes de ${esc(pname(c))} s’il est éliminé">
+          <option value="__exhaust__" ${prefs[c] === "__exhaust__" ? "selected" : ""}>Aucun transfert</option>
+          ${simCodes.filter(t => t !== c).map(t => `<option value="${esc(t)}" ${prefs[c] === t ? "selected" : ""}>${esc(t)} – ${esc(pname(t))}</option>`).join("")}
+        </select>`
+      : `<span class="na">—</span>`;
     return `<tr><td><div class="p"><span class="chip" style="background:${col(c)}"></span><div>${name}</div></div></td>
       <td><div class="cell"><div class="tr"><b style="width:${vs}%;background:${col(c)}"></b></div><span>${pct(vs)}</span></div></td>
-      <td><div class="cell"><div class="tr"><b style="width:${ss}%;background:${col(c)}"></b></div><span>${p.s}</span></div></td></tr>`;
+      <td><div class="cell"><div class="tr"><b style="width:${ss}%;background:${col(c)}"></b></div><span>${s}</span></div></td>
+      <td>${to}</td></tr>`;
   }).join("");
+  tb.querySelectorAll("select.to").forEach(sel => sel.addEventListener("change", () => {
+    prefs[sel.dataset.party] = sel.value;
+    S.sim = computeSim(e);
+    renderComparison(e);
+    refreshView(e);
+  }));
+}
+
+/* ---------- comparaison des modes de scrutin ---------- */
+function comparisonParties() {
+  const codes = new Set();
+  S.data.ridings.filter(r => !r.a).forEach(r => r.c.forEach(c => {
+    if (c[3] != null) codes.add(c[1]);
+  }));
+  return [...codes].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b) || a.localeCompare(b));
+}
+function transferPrefs(e) {
+  const prefs = S.transfers[e.y] || (S.transfers[e.y] = {});
+  comparisonParties().forEach(code => { prefs[code] ??= "__exhaust__"; });
+  return prefs;
+}
+function computeSim(e) {
+  const prefs = transferPrefs(e), by = new Map(), seats = {};
+  let total = 0;
+  S.data.ridings.forEach(r => {
+    const s = runoffResult(r, prefs);
+    by.set(r.id, s);
+    if (s.w) { seats[s.w] = (seats[s.w] || 0) + 1; total++; }
+  });
+  return {by, seats, total};
+}
+function refreshView(e) {
+  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === (simOn() ? "sim" : "real")));
+  $("#view-hint").textContent = simOn()
+    ? "Carte, hémicycle et sièges selon la simulation par élimination; les pourcentages de votes restent ceux du premier choix."
+    : "";
+  drawHemi(e); drawTable(e); paintMap(); drawRiding();
+}
+function preferenceChain(origin, prefs) {
+  const chain = [origin], seen = new Set(chain);
+  let next = prefs[origin];
+  while (next && next !== "__exhaust__" && next !== "__unset__" && !seen.has(next)) {
+    chain.push(next); seen.add(next);
+    next = prefs[next];
+  }
+  return chain;
+}
+function runoffResult(r, prefs) {
+  if (r.a) return {w: r.w, m: r.m};
+  const initial = new Map();
+  r.c.forEach(c => {
+    if (c[3] == null) return;
+    initial.set(c[1], (initial.get(c[1]) || 0) + c[3]);
+  });
+  const active = new Set(initial.keys());
+  if (!active.size) return {w: r.w, m: r.m};
+  const cast = d3.sum([...initial.values()]);
+  const blocks = [...initial].map(([party, votes]) => ({
+    votes, chain: preferenceChain(party, prefs), position: 0
+  }));
+  let last = null;
+  while (active.size > 1) {
+    const totals = new Map([...active].map(party => [party, 0]));
+    blocks.forEach(block => {
+      if (active.has(block.chain[block.position])) {
+        totals.set(block.chain[block.position], totals.get(block.chain[block.position]) + block.votes);
+      }
+    });
+    last = totals;
+    const eliminated = [...active].sort((a, b) =>
+      totals.get(a) - totals.get(b) ||
+      (ORDER.indexOf(a) < 0 ? Infinity : ORDER.indexOf(a)) - (ORDER.indexOf(b) < 0 ? Infinity : ORDER.indexOf(b)) ||
+      a.localeCompare(b)
+    )[0];
+    active.delete(eliminated);
+    blocks.forEach(block => {
+      if (block.chain[block.position] !== eliminated) return;
+      block.position++;
+      while (block.position < block.chain.length && !active.has(block.chain[block.position])) block.position++;
+    });
+  }
+  const w = active.values().next().value || r.w;
+  let m = null;
+  if (last && last.size === 2 && cast > 0) {
+    const [a, b] = [...last.values()].sort((x, y) => y - x);
+    m = Math.round((a - b) / cast * 1000) / 10;
+  }
+  return {w, m};
+}
+function renderComparison(e) {
+  const result = $("#compare-result");
+  $("#compare-intro").textContent = `Élection de ${e.y} · Résultat réel à un tour comparé à l’élimination simulée.`;
+  const simulated = S.sim.seats;
+  const rows = [...new Set([...Object.keys(e.par), ...Object.keys(simulated)])]
+    .sort((a, b) => ((e.par[b]?.v || 0) - (e.par[a]?.v || 0)) ||
+      ORDER.indexOf(a) - ORDER.indexOf(b) || a.localeCompare(b));
+  const comparableSeats = e.seats === e.ridings;
+  const body = rows.map(code => {
+    const actual = e.par[code]?.s || 0, alternative = simulated[code] || 0;
+    const change = alternative - actual;
+    return `<tr><td><div class="p"><span class="chip" style="background:${col(code)}"></span>${esc(pname(code))}</div></td>
+      <td>${actual}</td><td>${alternative}</td>${comparableSeats ? `<td>${change > 0 ? "+" : ""}${change}</td>` : ""}</tr>`;
+  }).join("");
+  const totalSimulated = Object.values(simulated).reduce((sum, seats) => sum + seats, 0);
+  const historicalWinners = S.data.ridings.filter(r => r.a || !r.c.some(c => c[3] != null)).length;
+  const simulatedHeading = comparableSeats ? "Sièges simulés" : "Gagnants simulés";
+  const differenceHeading = comparableSeats ? "<th scope=\"col\">Écart</th>" : "";
+  const caveat = comparableSeats ? "" : ` Les ${e.ridings} circonscriptions ne correspondent pas aux ${e.seats} sièges de cette élection; l’écart de sièges n’est donc pas calculé.`;
+  result.innerHTML = `<table class="compare-table"><thead><tr><th scope="col">Parti</th><th scope="col">Sièges réels</th><th scope="col">${simulatedHeading}</th>${differenceHeading}</tr></thead>
+    <tbody>${body}</tbody></table><p class="compare-summary">${totalSimulated} circonscriptions attribuées; ${historicalWinners} conservent leur élu historique faute de votes simulables (acclamation ou résultats de candidats indisponibles).${caveat}</p>`;
 }
 
 /* ---------- panneau circonscription ---------- */
@@ -182,6 +324,8 @@ function drawRiding() {
   else if (r.t && r.e) subs.push(`participation ${pct(r.t / r.e * 100)}`);
   if (!r.a && r.m != null) subs.push(`écart ${r.m.toLocaleString("fr-CA")} pts`);
   if (r.q) subs.push("données moins certaines");
+  const s = simOn() && !r.a && S.sim.by.get(r.id);
+  if (s && s.w) subs.push(`simulation : ${pname(s.w)}${s.w !== r.w ? ` (réel : ${pname(r.w)})` : ""}`);
   const cands = r.c.map(c => `<div class="cand"><span class="chip" style="background:${col(c[1])}"></span>
     <div class="nm ${c[5] ? "elu" : ""}">${esc(c[0])}${c[5] ? " ✓" : ""}<small>${esc(c[2] || pname(c[1]))}</small></div>
     <div class="v">${c[3] != null ? fmt.format(c[3]) + "<br>" + pct(c[4]) : "—"}</div></div>`).join("");
@@ -210,8 +354,9 @@ async function select(i, rid = null) {
   const d = await J(`data/r/${e.y}.json`);
   if (S.i !== i) return;
   S.data = d; S.byId = new Map(d.ridings.map(r => [r.id, r]));
-  updateFrise(); updateHeader(e); drawHemi(e); drawTable(e); updateHistSel();
-  await drawMap(); drawRiding();
+  S.sim = computeSim(e);
+  updateFrise(); updateHeader(e); renderComparison(e); updateHistSel(); refreshView(e);
+  await drawMap();
   history.replaceState(null, "", `#${e.y}${S.rid ? "/" + S.rid : ""}`);
 }
 function selectRiding(id) {
@@ -289,10 +434,14 @@ async function init() {
   const [E, L] = await Promise.all([J("data/elections.json"), J("data/lineages.json"), initProj()]);
   S.els = E.elections; S.parties = E.parties; S.lin = L;
   buildFrise(); drawLegend(); drawHist();
-  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".seg button[data-m]").forEach(b => b.addEventListener("click", () => {
     S.metric = b.dataset.m;
-    document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    document.querySelectorAll(".seg button[data-m]").forEach(x => x.setAttribute("aria-pressed", x === b));
     drawHist();
+  }));
+  document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => {
+    S.view = b.dataset.view;
+    refreshView(S.els[S.i]);
   }));
   document.querySelectorAll(".zoombtns button").forEach(b => b.addEventListener("click", () => zoomTo(b.dataset.z)));
   $("#theme").addEventListener("click", () => {

@@ -1,6 +1,6 @@
 # Élections québécoises, 1867–2026
 
-Site statique de visualisation des 44 élections générales québécoises : frise chronologique, hémicycle, carte des circonscriptions sur les frontières de chaque époque, historique par circonscription et évolution des votes et des sièges.
+Site statique de visualisation des 44 élections générales québécoises : frise chronologique, hémicycle, carte des circonscriptions sur les frontières de chaque époque, historique par circonscription, évolution des votes et des sièges, et comparaison du scrutin réel avec une simulation par élimination et transferts configurables par parti.
 
 ## Voir le site
 
