@@ -9,8 +9,19 @@ const cache = {};
 const J = u => (cache[u] ??= fetch(u).then(r => { if (!r.ok) throw new Error(u); return r.json(); }));
 const W = 800, H = 840;
 
-const S = { els: [], parties: {}, lin: {}, i: 0, rid: null, metric: "s", data: null, geo: null, transfers: {}, view: "real", sim: null };
-const simOn = () => S.view === "sim" && !!S.sim;
+const S = { els: [], parties: {}, lin: {}, i: 0, rid: null, metric: "s", data: null, geo: null, transfers: {}, view: "real", res: null };
+const VIEWS = {
+  real: {name: "Réel", head: "Sièges", hint: ""},
+  pref: {name: "Vote préférentiel", head: "Sièges (préf.)", riding: true,
+    hint: "Carte, hémicycle et sièges selon le vote préférentiel par élimination; les pourcentages de votes restent ceux du premier choix."},
+  two: {name: "Deux tours", head: "Sièges (2 tours)", riding: true,
+    hint: "Second tour entre les deux partis en tête de chaque circonscription; les votes des autres partis suivent la colonne « Vers »."},
+  prop: {name: "Proportionnelle", head: "Sièges (prop.)",
+    hint: "Sièges répartis entre les partis au prorata des votes valides (méthode d’Hondt); la carte n’a plus d’élu par circonscription."},
+  mmp: {name: "Mixte compensatoire", head: "Sièges (mixte)",
+    hint: "Élus de circonscription conservés (carte réelle), plus des sièges de liste (45 pour 80, comme le projet de loi 39) qui rapprochent chaque parti de sa part des votes."},
+};
+const ridingSim = () => !!VIEWS[S.view].riding;
 const tip = $("#tip");
 function showTip(html, ev) {
   tip.innerHTML = html; tip.hidden = false;
@@ -82,8 +93,8 @@ function zoomTo(k) {
   svg.transition().duration(500).call(zoom.transform, tr);
 }
 function outcome(r) {
-  if (!r) return null;
-  if (simOn()) { const s = S.sim.by.get(r.id); if (s) return {w: s.w, m: s.m, a: r.a}; }
+  if (!r || S.view === "prop") return null;
+  if (ridingSim()) { const s = S.res[S.view].by.get(r.id); if (s) return {w: s.w, m: s.m, a: r.a}; }
   return {w: r.w, m: r.m, a: r.a};
 }
 function riskStyle(o) {
@@ -96,7 +107,9 @@ function paintMap() {
   gBase.selectAll("path")
     .style("fill", d => riskStyle(outcome(S.byId.get(d.id))).fill)
     .style("fill-opacity", d => riskStyle(outcome(S.byId.get(d.id))).op);
-  $("#map-cap").textContent = `Carte électorale de ${e.ro === 2026 ? "2026" : e.ro}` + (simOn() ? " · simulation" : "");
+  gAcc.style("display", S.view === "prop" ? "none" : null);
+  $("#map-cap").textContent = `Carte électorale de ${e.ro === 2026 ? "2026" : e.ro}` +
+    (S.view === "real" ? "" : ` · ${VIEWS[S.view].name.toLowerCase()}`);
 }
 async function drawMap() {
   const e = S.els[S.i];
@@ -124,22 +137,26 @@ function ridingTip(r) {
   if (!w) return `<b>${esc(r.n)}</b><br>Aucun élu`;
   const extra = r.a ? "Élu par acclamation" : (r.m != null ? `Écart : ${r.m.toLocaleString("fr-CA")} pts` : "");
   const real = `<b>${esc(r.n)}</b><br>${esc(w[0])}<br>${esc(w[2] || pname(w[1]))}<br>${extra}`;
-  const s = simOn() && !r.a && S.sim.by.get(r.id);
+  const s = ridingSim() && !r.a && S.res[S.view].by.get(r.id);
   if (!s) return real;
   const diff = s.w !== r.w ? ` (réel : ${esc(pname(r.w))})` : "";
-  return `<b>${esc(r.n)}</b><br>Simulation : ${esc(pname(s.w))}${diff}<br>${s.m != null ? `Écart final : ${s.m.toLocaleString("fr-CA")} pts` : ""}`;
+  return `<b>${esc(r.n)}</b><br>${VIEWS[S.view].name} : ${esc(pname(s.w))}${diff}<br>${s.m != null ? `Écart final : ${s.m.toLocaleString("fr-CA")} pts` : ""}`;
 }
 
 /* ---------- hémicycle ---------- */
 function seatCounts(e) {
-  if (simOn()) return {par: S.sim.seats, N: S.sim.total, label: `${S.sim.total} sièges simulés`};
+  const v = S.view, R = S.res, head = VIEWS[v].head, name = VIEWS[v].name.toLowerCase();
+  if (ridingSim()) return {par: R[v].seats, N: R[v].total, label: `${R[v].total} sièges · ${name}`, head};
+  if (v === "prop") return {par: R.prop, N: e.seats, label: `${e.seats} sièges · ${name}`, head};
+  if (v === "mmp") return {par: R.mmp.seats, N: R.mmp.total, label: `${R.mmp.total} sièges · mixte`, head,
+    detail: c => `${R.mmp.riding[c] || 0} de circonscription + ${R.mmp.list[c] || 0} de liste`};
   const par = {}; ORDER.forEach(c => { if (e.par[c]) par[c] = e.par[c].s; });
-  return {par, N: e.seats, label: `${e.seats} sièges`};
+  return {par, N: e.seats, label: `${e.seats} sièges`, head};
 }
 function drawHemi(e) {
   const h = d3.select("#hemi").attr("viewBox", "-4 -18 468 272");
   h.selectAll("*").remove();
-  const {par, N, label} = seatCounts(e);
+  const {par, N, label, detail} = seatCounts(e);
   const R = N <= 70 ? 4 : N <= 100 ? 5 : 6;
   const cx = 230, cy = 238, rin = 100, rout = 214;
   const rows = d3.range(R).map(i => rin + (rout - rin) * i / (R - 1));
@@ -160,7 +177,7 @@ function drawHemi(e) {
   h.selectAll("circle").data(seats).join("circle").attr("class", "hs")
     .attr("cx", d => d.x).attr("cy", d => d.y).attr("r", rad)
     .style("fill", (d, i) => owners[i] ? col(owners[i]) : "var(--none)")
-    .on("mousemove", (ev, d) => { const i = seats.indexOf(d), c = owners[i]; if (c) showTip(`<b>${esc(pname(c))}</b><br>${par[c]} sièges${simOn() ? " simulés" : ""}`, ev); })
+    .on("mousemove", (ev, d) => { const i = seats.indexOf(d), c = owners[i]; if (c) showTip(`<b>${esc(pname(c))}</b><br>${par[c]} sièges${S.view === "real" ? "" : " simulés"}${detail ? "<br>" + detail(c) : ""}`, ev); })
     .on("mouseleave", hideTip);
   h.append("text").attr("x", cx).attr("y", cy - 34).attr("text-anchor", "middle")
     .style("font", "700 34px var(--f-display)").style("fill", "var(--ink)").text(e.y);
@@ -181,7 +198,7 @@ function drawTable(e) {
   const sc = seatCounts(e);
   const simCodes = comparisonParties(), prefs = transferPrefs(e);
   [...Object.keys(sc.par).filter(c => sc.par[c] > 0), ...simCodes].forEach(c => { if (!codes.includes(c)) codes.push(c); });
-  $("#res-seats-h").textContent = simOn() ? "Sièges simulés" : "Sièges";
+  $("#res-seats-h").textContent = sc.head;
   const tb = $("#res tbody");
   tb.innerHTML = codes.map(c => {
     const p = e.par[c] || {v: 0, s: 0}, s = sc.par[c] || 0, vs = p.v / e.valid * 100, ss = s / sc.N * 100;
@@ -203,7 +220,7 @@ function drawTable(e) {
   }).join("");
   tb.querySelectorAll("select.to").forEach(sel => sel.addEventListener("change", () => {
     prefs[sel.dataset.party] = sel.value;
-    S.sim = computeSim(e);
+    computeAll(e);
     renderComparison(e);
     refreshView(e);
   }));
@@ -222,21 +239,60 @@ function transferPrefs(e) {
   comparisonParties().forEach(code => { prefs[code] ??= "__exhaust__"; });
   return prefs;
 }
-function computeSim(e) {
+const byOrder = (a, b) => (ORDER.indexOf(a) < 0 ? Infinity : ORDER.indexOf(a)) - (ORDER.indexOf(b) < 0 ? Infinity : ORDER.indexOf(b)) || a.localeCompare(b);
+function partyVotes(r) {
+  const v = new Map();
+  r.c.forEach(c => { if (c[3] != null) v.set(c[1], (v.get(c[1]) || 0) + c[3]); });
+  return v;
+}
+function computeRiding(e, result) {
   const prefs = transferPrefs(e), by = new Map(), seats = {};
   let total = 0;
   S.data.ridings.forEach(r => {
-    const s = runoffResult(r, prefs);
+    const s = result(r, prefs);
     by.set(r.id, s);
     if (s.w) { seats[s.w] = (seats[s.w] || 0) + 1; total++; }
   });
   return {by, seats, total};
 }
+function dhondt(votes, n) {
+  const codes = Object.keys(votes).filter(c => votes[c] > 0), seats = {};
+  codes.forEach(c => { seats[c] = 0; });
+  for (let k = 0; k < n && codes.length; k++) {
+    const best = codes.reduce((a, c) => votes[c] / (seats[c] + 1) > votes[a] / (seats[a] + 1) ? c : a);
+    seats[best]++;
+  }
+  return seats;
+}
+function listVotes(e) {
+  const v = {};
+  ORDER.forEach(c => { if (e.par[c] && c !== "AUT" && c !== "IND") v[c] = e.par[c].v; });
+  return v;
+}
+function computeMMP(e) {
+  const riding = {};
+  ORDER.forEach(c => { if (e.par[c]?.s) riding[c] = e.par[c].s; });
+  const L = Math.round(e.seats * 45 / 80);
+  const outside = (riding.AUT || 0) + (riding.IND || 0);
+  const target = dhondt(listVotes(e), e.seats + L - outside);
+  const list = {}, seats = {...riding};
+  Object.keys(target).forEach(c => {
+    const add = Math.max(0, target[c] - (riding[c] || 0));
+    if (add) { list[c] = add; seats[c] = (seats[c] || 0) + add; }
+  });
+  return {riding, list, seats, L, total: d3.sum(Object.values(seats))};
+}
+function computeAll(e) {
+  S.res = {
+    pref: computeRiding(e, runoffResult),
+    two: computeRiding(e, twoRoundResult),
+    prop: dhondt(listVotes(e), e.seats),
+    mmp: computeMMP(e),
+  };
+}
 function refreshView(e) {
-  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === (simOn() ? "sim" : "real")));
-  $("#view-hint").textContent = simOn()
-    ? "Carte, hémicycle et sièges selon la simulation par élimination; les pourcentages de votes restent ceux du premier choix."
-    : "";
+  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === S.view));
+  $("#view-hint").textContent = VIEWS[S.view].hint;
   drawHemi(e); drawTable(e); paintMap(); drawRiding();
 }
 function preferenceChain(origin, prefs) {
@@ -290,27 +346,43 @@ function runoffResult(r, prefs) {
   }
   return {w, m};
 }
+function twoRoundResult(r, prefs) {
+  if (r.a) return {w: r.w, m: r.m};
+  const votes = partyVotes(r);
+  if (!votes.size) return {w: r.w, m: r.m};
+  const cast = d3.sum([...votes.values()]);
+  const margin = (a, b) => Math.round((a - b) / cast * 1000) / 10;
+  const ranked = [...votes.keys()].sort((a, b) => votes.get(b) - votes.get(a) || byOrder(a, b));
+  if (ranked.length < 2) return {w: ranked[0], m: null};
+  if (votes.get(ranked[0]) * 2 > cast) return {w: ranked[0], m: margin(votes.get(ranked[0]), votes.get(ranked[1]))};
+  const totals = new Map(ranked.slice(0, 2).map(c => [c, 0]));
+  votes.forEach((n, party) => {
+    const dest = preferenceChain(party, prefs).find(c => totals.has(c));
+    if (dest) totals.set(dest, totals.get(dest) + n);
+  });
+  const [w, l] = [...totals.keys()].sort((a, b) => totals.get(b) - totals.get(a) || byOrder(a, b));
+  return {w, m: margin(totals.get(w), totals.get(l))};
+}
 function renderComparison(e) {
-  const result = $("#compare-result");
-  $("#compare-intro").textContent = `Élection de ${e.y} · Résultat réel à un tour comparé à l’élimination simulée.`;
-  const simulated = S.sim.seats;
-  const rows = [...new Set([...Object.keys(e.par), ...Object.keys(simulated)])]
-    .sort((a, b) => ((e.par[b]?.v || 0) - (e.par[a]?.v || 0)) ||
-      ORDER.indexOf(a) - ORDER.indexOf(b) || a.localeCompare(b));
-  const comparableSeats = e.seats === e.ridings;
+  const R = S.res, comparable = e.seats === e.ridings;
+  $("#compare-intro").textContent = `Élection de ${e.y} · Résultat réel à un tour comparé aux quatre modes simulés.`;
+  const cols = [["Préférentiel", R.pref.seats, comparable], ["Deux tours", R.two.seats, comparable], ["Proportionnelle", R.prop, true]];
+  const rows = [...new Set([...Object.keys(e.par), ...cols.flatMap(c => Object.keys(c[1])), ...Object.keys(R.mmp.seats)])]
+    .sort((a, b) => ((e.par[b]?.v || 0) - (e.par[a]?.v || 0)) || byOrder(a, b));
+  const delta = (n, actual) => { const d = n - actual; return `<small>(${d > 0 ? "+" : ""}${d})</small>`; };
   const body = rows.map(code => {
-    const actual = e.par[code]?.s || 0, alternative = simulated[code] || 0;
-    const change = alternative - actual;
+    const actual = e.par[code]?.s || 0;
+    const cells = cols.map(([, seats, cmp]) => { const n = seats[code] || 0; return `<td>${n} ${cmp ? delta(n, actual) : ""}</td>`; }).join("");
+    const mm = R.mmp.seats[code] || 0, li = R.mmp.list[code] || 0;
     return `<tr><td><div class="p"><span class="chip" style="background:${col(code)}"></span>${esc(pname(code))}</div></td>
-      <td>${actual}</td><td>${alternative}</td>${comparableSeats ? `<td>${change > 0 ? "+" : ""}${change}</td>` : ""}</tr>`;
+      <td>${actual}</td>${cells}<td>${mm} ${li ? `<small>dont ${li} de liste</small>` : ""}</td></tr>`;
   }).join("");
-  const totalSimulated = Object.values(simulated).reduce((sum, seats) => sum + seats, 0);
   const historicalWinners = S.data.ridings.filter(r => r.a || !r.c.some(c => c[3] != null)).length;
-  const simulatedHeading = comparableSeats ? "Sièges simulés" : "Gagnants simulés";
-  const differenceHeading = comparableSeats ? "<th scope=\"col\">Écart</th>" : "";
-  const caveat = comparableSeats ? "" : ` Les ${e.ridings} circonscriptions ne correspondent pas aux ${e.seats} sièges de cette élection; l’écart de sièges n’est donc pas calculé.`;
-  result.innerHTML = `<table class="compare-table"><thead><tr><th scope="col">Parti</th><th scope="col">Sièges réels</th><th scope="col">${simulatedHeading}</th>${differenceHeading}</tr></thead>
-    <tbody>${body}</tbody></table><p class="compare-summary">${totalSimulated} circonscriptions attribuées; ${historicalWinners} conservent leur élu historique faute de votes simulables (acclamation ou résultats de candidats indisponibles).${caveat}</p>`;
+  const caveat = comparable ? "" : ` Les ${e.ridings} circonscriptions ne correspondent pas aux ${e.seats} sièges de cette élection; les écarts du préférentiel et des deux tours ne sont donc pas calculés.`;
+  const overhang = R.mmp.total - e.seats - R.mmp.L;
+  $("#compare-result").innerHTML = `<table class="compare-table"><thead><tr><th scope="col">Parti</th><th scope="col">Sièges réels</th>${cols.map(c => `<th scope="col">${c[0]}</th>`).join("")}<th scope="col">Mixte</th></tr></thead>
+    <tbody>${body}</tbody></table><p class="compare-summary">Préférentiel et deux tours : ${historicalWinners} circonscriptions conservent leur élu historique faute de votes simulables (acclamation ou résultats de candidats indisponibles).${caveat}
+    Mixte : ${e.seats} élus de circonscription + ${R.mmp.L} sièges de liste${overhang > 0 ? ` + ${overhang} siège${overhang > 1 ? "s" : ""} excédentaire${overhang > 1 ? "s" : ""}` : ""} = ${R.mmp.total}. Entre parenthèses : écart avec les sièges réels.</p>`;
 }
 
 /* ---------- panneau circonscription ---------- */
@@ -324,8 +396,8 @@ function drawRiding() {
   else if (r.t && r.e) subs.push(`participation ${pct(r.t / r.e * 100)}`);
   if (!r.a && r.m != null) subs.push(`écart ${r.m.toLocaleString("fr-CA")} pts`);
   if (r.q) subs.push("données moins certaines");
-  const s = simOn() && !r.a && S.sim.by.get(r.id);
-  if (s && s.w) subs.push(`simulation : ${pname(s.w)}${s.w !== r.w ? ` (réel : ${pname(r.w)})` : ""}`);
+  const s = ridingSim() && !r.a && S.res[S.view].by.get(r.id);
+  if (s && s.w) subs.push(`${VIEWS[S.view].name.toLowerCase()} : ${pname(s.w)}${s.w !== r.w ? ` (réel : ${pname(r.w)})` : ""}`);
   const cands = r.c.map(c => `<div class="cand"><span class="chip" style="background:${col(c[1])}"></span>
     <div class="nm ${c[5] ? "elu" : ""}">${esc(c[0])}${c[5] ? " ✓" : ""}<small>${esc(c[2] || pname(c[1]))}</small></div>
     <div class="v">${c[3] != null ? fmt.format(c[3]) + "<br>" + pct(c[4]) : "—"}</div></div>`).join("");
@@ -354,7 +426,7 @@ async function select(i, rid = null) {
   const d = await J(`data/r/${e.y}.json`);
   if (S.i !== i) return;
   S.data = d; S.byId = new Map(d.ridings.map(r => [r.id, r]));
-  S.sim = computeSim(e);
+  computeAll(e);
   updateFrise(); updateHeader(e); renderComparison(e); updateHistSel(); refreshView(e);
   await drawMap();
   history.replaceState(null, "", `#${e.y}${S.rid ? "/" + S.rid : ""}`);

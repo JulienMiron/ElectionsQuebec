@@ -41,6 +41,7 @@ main{max-width:1280px;margin:0 auto;padding:0 20px 20px}
 .note{margin:8px 0 0;padding:8px 12px;border-left:3px solid var(--c-ADQ);background:var(--panel);font-size:14px;max-width:80ch}
 .view-tools{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px}
 .view-tools .hint{margin:0}
+.view-tools .seg{flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,1fr);gap:24px;margin-top:20px;align-items:start}
 .map-wrap{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
 .map-tools{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
@@ -92,6 +93,7 @@ main{max-width:1280px;margin:0 auto;padding:0 20px 20px}
 .compare-table th{font-size:12px;color:var(--muted);font-weight:500}
 .compare-table th:first-child,.compare-table td:first-child{text-align:left}
 .compare-table .p{display:flex;align-items:center;gap:8px;font-weight:500}
+.compare-table small{color:var(--muted);font-size:12px}
 .compare-summary{margin:8px 0 0;color:var(--ink2);font-size:14px}
 .hist{padding-top:48px}
 .hist-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}

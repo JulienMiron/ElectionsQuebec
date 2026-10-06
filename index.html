@@ -34,7 +34,10 @@
     <div class="view-tools">
       <div class="seg" role="group" aria-label="Résultats affichés sur la carte et l'hémicycle">
         <button type="button" data-view="real" aria-pressed="true">Réel</button>
-        <button type="button" data-view="sim" aria-pressed="false">Simulé</button>
+        <button type="button" data-view="pref" aria-pressed="false">Préférentiel</button>
+        <button type="button" data-view="two" aria-pressed="false">Deux tours</button>
+        <button type="button" data-view="prop" aria-pressed="false">Proportionnel</button>
+        <button type="button" data-view="mmp" aria-pressed="false">Mixte</button>
       </div>
       <p id="view-hint" class="hint"></p>
     </div>
@@ -58,7 +61,7 @@
           <thead><tr><th scope="col">Parti</th><th scope="col">Votes</th><th scope="col" id="res-seats-h">Sièges</th><th scope="col">Vers</th></tr></thead>
           <tbody></tbody>
         </table>
-        <p class="hint">Vers : où vont les votes du parti lorsqu’il est éliminé dans la simulation par élimination.</p>
+        <p class="hint">Vers : où vont les votes du parti lorsqu’il est éliminé (vote préférentiel et deux tours).</p>
       </div>
     </div>
     <section id="riding" class="riding" aria-live="polite"></section>
@@ -66,8 +69,11 @@
 
   <section class="compare" aria-labelledby="compare-title">
     <h2 id="compare-title">Comparer les modes de scrutin</h2>
-    <p class="meta" id="compare-intro">Scrutin réel à un tour et simulation par élimination pour l’élection sélectionnée.</p>
-    <p class="hint">La simulation regroupe les votes par parti et applique le même transfert (colonne « Vers » du tableau des résultats) dans toutes les circonscriptions. Les partis sont éliminés du moins au plus populaire; leurs votes suivent les destinations choisies, en sautant les partis absents ou déjà éliminés. Par défaut, et dès qu’aucune destination n’est encore active, les votes sont épuisés. En cas d’égalité, l’ordre d’affichage des partis sert de départage technique. Les résultats historiques ne contiennent pas les véritables choix de deuxième préférence. Les circonscriptions remportées par acclamation conservent leur élu historique.</p>
+    <p class="meta" id="compare-intro">Scrutin réel à un tour, vote préférentiel, deux tours, proportionnelle et mixte compensatoire pour l’élection sélectionnée.</p>
+    <p class="hint"><strong>Préférentiel.</strong> La simulation regroupe les votes par parti et applique le même transfert (colonne « Vers » du tableau des résultats) dans toutes les circonscriptions. Les partis sont éliminés du moins au plus populaire; leurs votes suivent les destinations choisies, en sautant les partis absents ou déjà éliminés. Par défaut, et dès qu’aucune destination n’est encore active, les votes sont épuisés. En cas d’égalité, l’ordre d’affichage des partis sert de départage technique. Les résultats historiques ne contiennent pas les véritables choix de deuxième préférence. Les circonscriptions remportées par acclamation conservent leur élu historique.
+    <strong>Deux tours.</strong> Dans chaque circonscription, un parti qui dépasse 50 % des votes est élu au premier tour; sinon, un second tour oppose les deux partis en tête et les votes des autres partis suivent la colonne « Vers » (épuisés s’ils n’atteignent aucun finaliste).
+    <strong>Proportionnelle.</strong> Les sièges de l’Assemblée sont répartis entre les partis selon leur part des votes valides (méthode d’Hondt, sans seuil), comme s’il n’y avait qu’une seule circonscription. Les candidats indépendants et les « autres partis » regroupés n’y participent pas. Les votes des circonscriptions remportées par acclamation étant inconnus, la répartition ne reflète que les circonscriptions disputées.
+    <strong>Mixte compensatoire.</strong> Les élus de circonscription restent ceux du scrutin réel. On y ajoute des sièges de liste dans la proportion du projet de loi 39 de 2019 (45 sièges de liste pour 80 de circonscription), répartis pour rapprocher le total de chaque parti de sa part des votes (méthode d’Hondt, sans seuil). Un parti qui a déjà plus d’élus de circonscription que sa part ne lui en donnerait les conserve (sièges excédentaires), ce qui agrandit l’Assemblée.</p>
     <div id="compare-result" aria-live="polite"></div>
   </section>
 
