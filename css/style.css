@@ -133,3 +133,5 @@ footer p{max-width:100ch}
 .demo-more{margin-top:14px}
 .demo-more summary{cursor:pointer;color:var(--ink2)}
 .demo .note{margin-top:20px}
+.matrix thead th:not(:first-child),.matrix .r2,.matrix.beta td{text-align:center}
+.matrix .rbar{max-width:170px;margin-inline:auto}
