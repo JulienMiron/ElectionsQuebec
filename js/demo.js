@@ -33,10 +33,17 @@ function showTip(html, ev) {
 const hideTip = () => { tip.hidden = true; };
 const cur = () => S.d[S.y];
 
-const W = 760, H = 440, M = {l: 52, r: 16, t: 14, b: 48};
-const svg = d3.select("#demo-plot").attr("viewBox", `0 0 ${W} ${H}`);
+let W = 760, H = 440;
+const M = {l: 52, r: 16, t: 14, b: 48};
+const svg = d3.select("#demo-plot");
+function size() {
+  W = Math.max(560, Math.round(document.querySelector("#demo-plot").parentNode.clientWidth || 760));
+  H = Math.max(300, Math.min(460, innerHeight - 300));
+  svg.attr("viewBox", `0 0 ${W} ${H}`);
+}
 
 function draw() {
+  size();
   const Y = cur(), X = IND[S.x], R = Y.ridings, st = Y.stats[S.p];
   const [slope, icpt] = st.fit[S.x], r = st.r[S.x];
   svg.selectAll("*").remove();
@@ -124,3 +131,5 @@ fetch("data/demo.json").then(r => r.json()).then(d => {
   $("#demo-rob").textContent = `Contrôle : sur les ${m.n_stable} circonscriptions de 2022 presque identiques à celles de 2026 (au moins 90 % de superficie commune dans les deux sens), où l'estimation est quasi exacte, les corrélations de 2022 diffèrent en moyenne de ${nf(m.mean_dr_stable, 2)} (au plus ${nf(m.max_dr_stable, 2)}) de celles calculées sur les 125 circonscriptions.`;
 }).catch(err => { $("#demo-read").textContent = "Impossible de charger le profil des circonscriptions."; console.error(err); });
 })();
+
+let _rt; addEventListener("resize", () => { clearTimeout(_rt); _rt = setTimeout(() => draw(), 150); });
