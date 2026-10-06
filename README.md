@@ -33,3 +33,9 @@ TOOLS=<dossier avec mapshaper et topojson-client> TMPGEO=/tmp/geo node scripts/b
 L'Atlas ne précise pas de licence explicite pour ses données; il compile des sources publiques (Assemblée nationale, Fondation Lionel-Groulx, Élections Québec). Citer les auteurs et vérifier auprès d'eux avant toute réutilisation commerciale.
 
 Comprend des données ouvertes octroyées sous la licence d'utilisation des données ouvertes du directeur général des élections disponible à l'adresse Web dgeq.org. L'octroi de la licence n'implique aucune approbation par le directeur général des élections de l'utilisation des données ouvertes qui en est faite.
+
+## Profil socioéconomique (`data/demo.json`)
+
+`scripts/build_demo.py` croise les résultats avec le profil du Recensement de 2021 des 127 circonscriptions de 2026 (Élections Québec, licence ouverte de Statistique Canada) : scolarité, revenu total moyen, âge, langues française et anglaise, immigration, locataires et densité (population ÷ superficie).
+Le profil de 2022 n'existe pas officiellement sur la carte de 2017 : il est estimé par interpolation pondérée par la population (table de correspondance des cartes de Données bleues). Contrôle : sur les 105 circonscriptions presque inchangées, les corrélations diffèrent en moyenne de 0,014 de celles de l'estimation complète.
+Les liens sont des corrélations entre circonscriptions (erreur écologique).

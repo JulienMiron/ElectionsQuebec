@@ -117,7 +117,19 @@ def summarize(y, ro, ridings, extra=None):
     cont = [r for r in ridings if r["t"] and r["e"]]
     elec = sum(r["e"] for r in ridings if r["e"])
     turn = sum(r["t"] for r in cont) / sum(r["e"] for r in cont) * 100 if cont else None
-    e = {"y": y, "ro": ro, "seats": sum(p["s"] for p in par.values()), "ridings": len(ridings),
+    # compétitivité : écart entre les deux premiers, circonscriptions disputées seulement
+    ms = sorted(r["m"] for r in ridings if r["m"] is not None and not r["a"])
+    comp = None
+    if ms:
+        n = len(ms)
+        comp = {"n": n, "lt5": sum(m < 5 for m in ms), "lt15": sum(5 <= m < 15 for m in ms),
+                "ge15": sum(m >= 15 for m in ms), "mean": round(sum(ms) / n, 1),
+                "med": round(ms[n // 2] if n % 2 else (ms[n // 2 - 1] + ms[n // 2]) / 2, 1)}
+    tot_s = sum(p["s"] for p in par.values())
+    gal = None
+    if valid and tot_s:  # indice de Gallagher (points de %), tous partis; « autres partis » regroupés
+        gal = round((0.5 * sum((p["v"] / valid * 100 - p["s"] / tot_s * 100) ** 2 for p in par.values())) ** 0.5, 2)
+    e = {"y": y, "ro": ro, "comp": comp, "gal": gal, "seats": sum(p["s"] for p in par.values()), "ridings": len(ridings),
          "electorate": elec, "valid": valid, "turnout": round(turn, 1) if turn else None,
          "acc": sum(r["a"] for r in ridings), "par": par}
     if det:
@@ -155,6 +167,6 @@ parties = {  # métadonnées d'affichage (les couleurs sont dans le CSS)
     "QS": "Québec solidaire", "UN": "Union nationale", "ADQ": "Action démocratique du Québec",
     "PCQ": "Parti conservateur du Québec", "CON": "Parti conservateur (historique)",
     "AUT": "Autres partis", "IND": "Indépendants"}
-(OUT / "elections.json").write_text(json.dumps({"parties": parties, "elections": elections}, ensure_ascii=False, separators=(",", ":")))
+(OUT / "elections.json").write_text(json.dumps({"parties": parties, "elections": elections}, ensure_ascii=False, separators=(",", ":"), default=lambda o: o.item()))
 (OUT / "lineages.json").write_text(json.dumps(lineages, ensure_ascii=False, separators=(",", ":")))
 print("élections :", len(elections), "lignées :", len(lineages))

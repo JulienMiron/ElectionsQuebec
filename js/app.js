@@ -430,6 +430,7 @@ async function select(i, rid = null) {
   updateFrise(); updateHeader(e); renderComparison(e); updateHistSel(); refreshView(e);
   await drawMap();
   history.replaceState(null, "", `#${e.y}${S.rid ? "/" + S.rid : ""}`);
+  document.dispatchEvent(new CustomEvent("elec:changed", {detail: e.y}));
 }
 function selectRiding(id) {
   S.rid = S.rid === id ? null : id;
@@ -521,6 +522,7 @@ async function init() {
       (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.dataset.theme = dark ? "light" : "dark";
   });
+  document.addEventListener("elec:select", ev => { const k = S.els.findIndex(e => e.y === ev.detail); if (k >= 0) { select(k); $("#elec-titre").scrollIntoView({behavior: "smooth", block: "start"}); } });
   document.addEventListener("keydown", ev => {
     if (ev.target.closest("input,textarea")) return;
     if (ev.key === "ArrowLeft") { ev.preventDefault(); select(S.i - 1); }

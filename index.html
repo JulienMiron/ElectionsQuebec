@@ -77,25 +77,49 @@
     <div id="compare-result" aria-live="polite"></div>
   </section>
 
+  <section class="portrait" aria-labelledby="portrait-titre">
+    <h2 id="portrait-titre">Compétition, participation et disproportion</h2>
+    <p class="meta">Trois mesures, pour chaque élection depuis 1867. Cliquer sur une barre ouvre l'élection correspondante.</p>
+    <h3 class="sub3">Des courses serrées ou non</h3>
+    <p class="hint">Part des circonscriptions disputées selon l'écart entre les deux premiers candidats. Les acclamations sont exclues.</p>
+    <div class="histwrap"><svg id="pt-comp" role="img" aria-label="Part des circonscriptions selon l'écart de victoire, par élection"></svg></div>
+    <div class="legend"><span><i class="chip" style="background:var(--seq-1)"></i>Écart de moins de 5 points</span><span><i class="chip" style="background:var(--seq-2)"></i>5 à 15 points</span><span><i class="chip" style="background:var(--seq-3)"></i>15 points et plus</span></div>
+    <h3 class="sub3">Participation</h3>
+    <p class="hint">Bulletins valides divisés par les inscrits, dans les circonscriptions disputées. Cercles creux : avant 1944, quand le droit de vote était restreint et que beaucoup de sièges se gagnaient par acclamation.</p>
+    <div class="histwrap"><svg id="pt-part" role="img" aria-label="Taux de participation par élection"></svg></div>
+    <h3 class="sub3">Disproportion entre votes et sièges</h3>
+    <p class="hint">Indice de Gallagher : écart entre la part des votes et la part des sièges de chaque parti, en points de pourcentage (0 = répartition parfaitement proportionnelle). Les « autres partis » sont regroupés; avant 1936, les acclamations (sièges sans votes) gonflent l'indice.</p>
+    <div class="histwrap"><svg id="pt-gal" role="img" aria-label="Indice de Gallagher par élection"></svg></div>
+  </section>
+
   <section class="demo" aria-labelledby="demo-titre">
-    <h2 id="demo-titre">Le vote de 2026 selon le profil des circonscriptions</h2>
-    <p class="meta">Chaque point est une des 127 circonscriptions. Les trois facteurs viennent du Recensement de 2021.</p>
+    <h2 id="demo-titre">Le vote selon le profil des circonscriptions</h2>
+    <p class="meta">Chaque point est une circonscription. Huit facteurs tirés du Recensement de 2021, pour les élections de 2026 et de 2022.</p>
     <div class="demo-tools">
-      <div class="seg" id="demo-x" role="group" aria-label="Facteur socioéconomique"></div>
+      <div class="seg" id="demo-y" role="group" aria-label="Élection"></div>
       <div class="pchips" id="demo-p" role="group" aria-label="Parti affiché"></div>
     </div>
+    <div class="seg wrap" id="demo-x" role="group" aria-label="Facteur socioéconomique"></div>
+    <p id="demo-y22" class="note" hidden>Le profil socioéconomique officiel n'existe que pour les 127 circonscriptions de 2026. Pour 2022, il est estimé : chaque ancienne circonscription reçoit la moyenne des profils des nouvelles circonscriptions qu'elle recoupe, pondérée par la population estimée de l'intersection.</p>
     <p id="demo-read" class="demo-read" aria-live="polite"></p>
     <div class="histwrap"><svg id="demo-plot" role="img" aria-label="Nuage de points : vote du parti choisi selon le facteur choisi, par circonscription"></svg></div>
     <p class="hint">Couleur d'un point : parti élu dans la circonscription. Trait : droite de tendance du parti sélectionné.</p>
-    <h3 class="sub3">Les trois facteurs en un coup d'œil</h3>
-    <p class="hint">Corrélation (r) entre la part des votes d'un parti et chaque facteur : une barre vers la droite signifie que le parti fait mieux là où le facteur est élevé, vers la gauche, qu'il fait moins bien.</p>
-    <table id="demo-matrix" class="matrix"></table>
+
+    <h3 class="sub3">Tous les facteurs en un coup d'œil</h3>
+    <p class="hint">Corrélation (r) entre la part des votes d'un parti et chaque facteur, pour l'élection choisie ci-dessus. Barre vers la droite : le parti fait mieux là où le facteur est élevé; vers la gauche : moins bien.</p>
+    <div class="histwrap"><table id="demo-matrix" class="matrix wide"></table></div>
     <details class="demo-more">
-      <summary>Chaque facteur, les deux autres tenus constants</summary>
-      <p class="hint">Régression linéaire de la part des votes sur la scolarité, le revenu et l'âge ensemble; coefficients en points de vote par écart-type du facteur. Les trois facteurs étant liés entre eux (scolarité et revenu : r = 0,64; scolarité et âge : r = −0,50), un effet peut changer de signe une fois les autres pris en compte.</p>
-      <table id="demo-beta" class="matrix beta"></table>
+      <summary>Chaque facteur, les autres tenus constants</summary>
+      <p class="hint">Régression linéaire de la part des votes sur sept facteurs à la fois (la langue anglaise est omise : elle est presque le miroir de la langue française). Coefficients en points de vote par écart-type du facteur; en gras, ceux dont l'intervalle de confiance à 95 % exclut zéro. Les facteurs étant fortement liés entre eux (langue, immigration et densité surtout), un effet peut changer de signe ou disparaître une fois les autres pris en compte.</p>
+      <div class="histwrap"><table id="demo-beta" class="matrix beta"></table></div>
     </details>
-    <p class="note">À lire avec prudence. Il s'agit de moyennes par circonscription : on ne peut pas en conclure comment votent les personnes diplômées, aisées ou âgées (erreur écologique). Le revenu est le <em>revenu total moyen</em> des 15 ans et plus en 2020 (salaires, prestations, placements), pas un salaire. La scolarité porte sur les 25–64 ans. Le profil de 2021 est rattaché aux frontières de 2026 et les 127 points ne sont pas pondérés par la population.</p>
+
+    <h3 class="sub3">2022 et 2026 : ce qui a changé</h3>
+    <p class="hint">Corrélation de 2022 → corrélation de 2026, pour chaque parti et chaque facteur. En gras : changement d'au moins 0,20. ▲ : lien plus positif en 2026; ▼ : plus négatif; ≈ : stable.</p>
+    <div class="histwrap"><table id="demo-cmp" class="matrix cmpt"></table></div>
+    <p class="hint" id="demo-rob"></p>
+
+    <p class="note">À lire avec prudence. Il s'agit de moyennes par circonscription : on ne peut pas en conclure comment votent les personnes diplômées, aisées, âgées, immigrantes ou locataires (erreur écologique). Le revenu est le <em>revenu total moyen</em> des 15 ans et plus en 2020 (salaires, prestations, placements), pas un salaire; la scolarité porte sur les 25–64 ans; la densité divise la population par la superficie totale de la circonscription, et les grandes circonscriptions du Nord sont presque vides. Le profil de 2021 est rattaché à l'élection de 2026 comme à celle de 2022, et les points ne sont pas pondérés par la population. Les corrélations sont dominées par la grande région de Montréal pour la langue et l'immigration : quelques circonscriptions très atypiques pèsent lourd.</p>
   </section>
 
   <section class="hist" aria-labelledby="hist-titre">
@@ -122,6 +146,7 @@
 <script src="vendor/d3.min.js"></script>
 <script src="vendor/topojson-client.min.js"></script>
 <script src="js/app.js"></script>
+<script src="js/portrait.js"></script>
 <script src="js/demo.js"></script>
 </body>
 </html>
