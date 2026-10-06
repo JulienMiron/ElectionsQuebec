@@ -117,7 +117,7 @@ footer p{max-width:100ch}
 .pchip{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
 .pchip[aria-pressed="true"]{border-color:var(--ink);background:var(--panel);font-weight:600}
 .demo-read{max-width:78ch;margin:8px 0 4px}
-#demo-plot{width:100%;height:auto;display:block;min-width:560px}
+#demo-plot{width:100%;height:auto;max-height:calc(100vh - 330px);min-height:300px;display:block;min-width:560px}
 .sub3{font-family:var(--f-display);font-size:20px;margin:28px 0 2px}
 .matrix{width:100%;max-width:760px;border-collapse:collapse;font-variant-numeric:tabular-nums;margin-top:8px}
 .matrix th,.matrix td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;font-weight:400}
