@@ -143,7 +143,7 @@ footer p{max-width:100ch}
 #elec-titre{scroll-margin-top:140px}
 .seg.wrap{display:flex;flex-wrap:wrap;margin:10px 0 4px;width:fit-content;max-width:100%}
 .seg.wrap button{border-right:1px solid var(--line)}
-.matrix.wide{min-width:880px;max-width:none}
+.matrix.wide{min-width:1180px;max-width:none}
 .matrix.wide .rbar{grid-template-columns:4.2ch 1fr;gap:6px;max-width:130px}
 .matrix.wide .rtr{min-width:36px}
 .matrix.beta,.matrix.cmpt{min-width:620px;max-width:none}

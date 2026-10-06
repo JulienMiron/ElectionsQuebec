@@ -32,6 +32,11 @@ rows = {d.cell_value(r, 0): r for r in range(d.nrows) if d.cell_value(r, 0)}
 # facteur : (code de ligne du fichier, multiplicateur)
 IND = {
     "bac": ("TAB3C751a", 100),     # % des 25-64 ans avec baccalauréat ou plus
+    "bsc": ((["TAB3C752"], "TAB3C742"), 100),                          # baccalauréat seulement
+    "mas": ((["TAB3C753", "TAB3C754", "TAB3C755", "TAB3C756"], "TAB3C742"), 100),  # au-dessus du bac : certificat sup., médecine, maîtrise, doctorat
+    "ceg": ("TAB3C749a", 100),     # collège / cégep
+    "met": ("TAB3C746a", 100),     # métiers / apprentis
+    "nod": ("TAB3C743a", 100),     # aucun certificat, diplôme ou grade
     "inc": ("TAB2C2402_REV", 1),   # revenu total moyen des 15 ans et plus, 2020 ($)
     "age": ("TAB3-S-C3", 1),       # âge médian
     "fr":  ("TAB1CH_217a", 100),   # % langue maternelle française
@@ -41,6 +46,9 @@ IND = {
 }
 FACT = list(IND) + ["dens"]
 def val(code, j):
+    if isinstance(code, tuple):
+        nums = [val(c, j) for c in code[0]]; den = val(code[1], j)
+        return None if den in (None, 0) or None in nums else sum(nums) / den
     v = d.cell_value(rows[code], j)
     return float(v) if isinstance(v, (int, float)) else None
 

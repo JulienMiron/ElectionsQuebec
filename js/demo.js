@@ -9,7 +9,12 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const PARTIES = {PQ: "Parti québécois", PLQ: "Parti libéral du Québec", PCQ: "Parti conservateur du Québec", CAQ: "Coalition avenir Québec", QS: "Québec solidaire"};
 const pctF = v => nf(v) + " %";
 const IND = {
-  bac:  {tab: "Scolarité", label: "Part des 25–64 ans titulaires d'un baccalauréat ou plus", short: "baccalauréat ou plus", unit: 10, per: "10 points de diplômés universitaires de plus", fmt: pctF},
+  bac:  {tab: "Bac ou plus", label: "Part des 25–64 ans titulaires d'un baccalauréat ou plus", short: "baccalauréat ou plus", unit: 10, per: "10 points de diplômés universitaires de plus", fmt: pctF},
+  bsc:  {tab: "Bac seul", label: "Part des 25–64 ans dont le plus haut grade est le baccalauréat", short: "baccalauréat seulement", unit: 5, per: "5 points de plus de titulaires d'un baccalauréat seulement", fmt: pctF},
+  mas:  {tab: "Maîtrise ou plus", label: "Part des 25–64 ans avec un grade supérieur au baccalauréat (certificat universitaire supérieur, médecine, maîtrise, doctorat)", short: "grade supérieur au baccalauréat", unit: 5, per: "5 points de plus de titulaires d'un grade supérieur au baccalauréat", fmt: pctF},
+  ceg:  {tab: "Cégep", label: "Part des 25–64 ans dont le plus haut diplôme vient d'un collège ou cégep", short: "diplôme collégial", unit: 5, per: "5 points de plus de diplômés collégiaux", fmt: pctF},
+  met:  {tab: "Métiers", label: "Part des 25–64 ans titulaires d'un diplôme ou certificat d'apprenti ou d'école de métiers", short: "formation de métier", unit: 5, per: "5 points de plus de diplômés de métiers", fmt: pctF},
+  nod:  {tab: "Sans diplôme", label: "Part des 25–64 ans sans certificat, diplôme ni grade", short: "aucun diplôme", unit: 5, per: "5 points de plus de personnes sans diplôme", fmt: pctF},
   inc:  {tab: "Revenu", label: "Revenu total moyen des personnes de 15 ans et plus (2020)", short: "revenu moyen", unit: 10000, per: "10 000 $ de revenu moyen de plus", fmt: v => nf(v / 1000) + " k$"},
   age:  {tab: "Âge", label: "Âge médian de la population", short: "âge médian", unit: 5, per: "5 ans d'âge médian de plus", fmt: v => nf(v)},
   fr:   {tab: "Langue française", label: "Part de la population de langue maternelle française", short: "langue maternelle française", unit: 10, per: "10 points de francophones de plus", fmt: pctF},
@@ -130,6 +135,5 @@ fetch("data/demo.json").then(r => r.json()).then(d => {
   const m = d.meta;
   $("#demo-rob").textContent = `Contrôle : sur les ${m.n_stable} circonscriptions de 2022 presque identiques à celles de 2026 (au moins 90 % de superficie commune dans les deux sens), où l'estimation est quasi exacte, les corrélations de 2022 diffèrent en moyenne de ${nf(m.mean_dr_stable, 2)} (au plus ${nf(m.max_dr_stable, 2)}) de celles calculées sur les 125 circonscriptions.`;
 }).catch(err => { $("#demo-read").textContent = "Impossible de charger le profil des circonscriptions."; console.error(err); });
-})();
-
 let _rt; addEventListener("resize", () => { clearTimeout(_rt); _rt = setTimeout(() => draw(), 150); });
+})();
