@@ -33,7 +33,7 @@ function showTip(html, ev) {
 const hideTip = () => { tip.hidden = true; };
 const cur = () => S.d[S.y];
 
-const W = 760, H = 360, M = {l: 52, r: 16, t: 14, b: 48};
+const W = 760, H = 440, M = {l: 52, r: 16, t: 14, b: 48};
 const svg = d3.select("#demo-plot").attr("viewBox", `0 0 ${W} ${H}`);
 
 function draw() {
