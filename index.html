@@ -122,6 +122,17 @@
     <p class="note">À lire avec prudence. Il s'agit de moyennes par circonscription : on ne peut pas en conclure comment votent les personnes diplômées, aisées, âgées, immigrantes ou locataires (erreur écologique). Le revenu est le <em>revenu total moyen</em> des 15 ans et plus en 2020 (salaires, prestations, placements), pas un salaire; la scolarité porte sur les 25–64 ans et chaque niveau est la part de ceux dont c’est le plus haut diplôme (« Bac ou plus » regroupe baccalauréat et grades supérieurs; « Maîtrise ou plus » inclut certificats universitaires supérieurs au bac, médecine, maîtrise et doctorat); la densité divise la population par la superficie totale de la circonscription, et les grandes circonscriptions du Nord sont presque vides. Le profil de 2021 est rattaché à l'élection de 2026 comme à celle de 2022, et les points ne sont pas pondérés par la population. Les corrélations sont dominées par la grande région de Montréal pour la langue et l'immigration : quelques circonscriptions très atypiques pèsent lourd.</p>
   </section>
 
+  <section class="demo ab" aria-labelledby="ab-titre">
+    <h2 id="ab-titre">Laboratoire : quand le vote « s'explique » par n'importe quoi</h2>
+    <p class="meta">On teste des centaines de variables du recensement, plus quelques-unes qui n'ont aucun rapport avec la politique (longueur du nom de la circonscription, position sur la carte…), et on garde les plus corrélées au vote de 2026.</p>
+    <div class="demo-tools"><div class="seg" id="ab-adj" role="group" aria-label="Type de corrélation"></div><div class="seg" id="ab-only" role="group" aria-label="Variables affichées"></div></div>
+    <div class="pchips" id="ab-p" role="group" aria-label="Parti"></div>
+    <p id="ab-read" class="demo-read" aria-live="polite"></p>
+    <div class="ab-grid"><div id="ab-list" class="ab-list"></div>
+    <div><div class="histwrap"><svg id="ab-plot" role="img" aria-label="Nuage de points : vote selon la variable choisie"></svg></div><p class="hint" id="ab-cap"></p></div></div>
+    <p class="note">Comment un lien « absurde » peut sembler solide. Les circonscriptions de Montréal, de Québec et des régions diffèrent sur presque tout à la fois : une variable sans effet propre (le vélo, l'industrie culturelle) peut donc remplacer la langue, l'âge ou la densité et ressembler à une cause. Contrôler ces sept facteurs fait disparaître la plupart des liens; ceux qui restent (surtout pour Québec solidaire) ne prouvent pas pour autant une cause. Les variables vraiment sans sens (longueur du nom, « Saint » dans le nom) ne montrent, elles, aucun lien, comme on s'y attend. Avec 127 points et beaucoup de variables testées, certaines corrélations fortes en apparence arrivent aussi par pur hasard.</p>
+  </section>
+
   <section class="hist" aria-labelledby="hist-titre">
     <div class="hist-head">
       <h2 id="hist-titre">Votes et sièges au fil du temps</h2>
@@ -148,5 +159,6 @@
 <script src="js/app.js"></script>
 <script src="js/portrait.js"></script>
 <script src="js/demo.js"></script>
+<script src="js/absurde.js"></script>
 </body>
 </html>
