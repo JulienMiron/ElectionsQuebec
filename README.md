@@ -43,3 +43,7 @@ Les liens sont des corrélations entre circonscriptions (erreur écologique).
 ## Laboratoire de corrélations absurdes (`data/absurde.json`)
 
 `scripts/build_absurd.py` met le vote de 2026 en regard de 191 variables : toutes les parts en pourcentage du recensement des circonscriptions, plus des variables sans rapport avec la politique (longueur du nom, « Saint » dans le nom, rang alphabétique, position sur la carte). Il donne la corrélation brute et celle qui reste après contrôle de sept facteurs, ainsi que le maximum attendu de pur bruit (permutations).
+
+## Simulateur « Où votent les gens qui vous ressemblent ? » (`data/profil.json`)
+
+`scripts/build_profil.py` calcule, pour chaque circonscription de 2026, la part des habitants dans chaque catégorie (âge, revenu, scolarité, langue maternelle, immigration, logement). Le navigateur multiplie les parts des catégories choisies, pondère par la population et en tire le vote moyen. Ce n'est pas une prédiction individuelle (erreur écologique).

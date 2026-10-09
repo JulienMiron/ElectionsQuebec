@@ -133,6 +133,24 @@
     <p class="note">Comment un lien « absurde » peut sembler solide. Les circonscriptions de Montréal, de Québec et des régions diffèrent sur presque tout à la fois : une variable sans effet propre (le vélo, l'industrie culturelle) peut donc remplacer la langue, l'âge ou la densité et ressembler à une cause. Contrôler ces sept facteurs fait disparaître la plupart des liens; ceux qui restent (surtout pour Québec solidaire) ne prouvent pas pour autant une cause. Les variables vraiment sans sens (longueur du nom, « Saint » dans le nom) ne montrent, elles, aucun lien, comme on s'y attend. Avec 127 points et beaucoup de variables testées, certaines corrélations fortes en apparence arrivent aussi par pur hasard.</p>
   </section>
 
+  <section class="pf" aria-labelledby="pf-titre">
+    <h2 id="pf-titre">Où votent les gens qui vous ressemblent ?</h2>
+    <p class="meta">Entrez un profil : le simulateur calcule le vote de 2026 dans les circonscriptions où les gens comme vous sont les plus nombreux.</p>
+    <div class="pf-form">
+      <label class="pf-f"><span>Âge : <b id="pf-age-v"></b></span><input id="pf-age" type="range" min="18" max="95" step="1" value="40"></label>
+      <label class="pf-f"><span>Revenu personnel annuel : <b id="pf-rev-v"></b></span><input id="pf-rev" type="range" min="0" max="200000" step="5000" value="50000"></label>
+      <label class="pf-f"><span>Scolarité</span><select id="pf-sco"></select></label>
+      <label class="pf-f"><span>Langue maternelle</span><select id="pf-lng"></select></label>
+      <label class="pf-f"><span>Personne immigrante</span><select id="pf-imm"></select></label>
+      <label class="pf-f"><span>Logement</span><select id="pf-log"></select></label>
+    </div>
+    <h3 class="sub3">Appui estimé</h3>
+    <ol id="pf-out" class="pf-out" aria-live="polite"></ol>
+    <p class="hint">Trait vertical : moyenne du Québec. Dernière colonne : écart avec cette moyenne, en points.</p>
+    <p class="hint" id="pf-top"></p>
+    <p class="note">Ce n'est ni un sondage ni une prédiction de votre vote. On ne sait pas comment votent les individus : on sait seulement comment votent les circonscriptions. Pour chaque circonscription, on prend la part des habitants qui partagent chacune de vos caractéristiques, on multiplie ces parts (comme si elles étaient indépendantes à l'intérieur d'une circonscription) et on en tire le résultat moyen des circonscriptions, pondéré par la population. Le résultat décrit donc les circonscriptions où les gens comme vous sont surreprésentés, avec l'erreur écologique que cela comporte : deux voisins de profils différents votent souvent différemment. Les âges sont regroupés en tranches de 15 ans, les revenus en quatre tranches, et la scolarité porte sur les 25 à 64 ans. Résultats de 2026 provisoires.</p>
+  </section>
+
   <section class="hist" aria-labelledby="hist-titre">
     <div class="hist-head">
       <h2 id="hist-titre">Votes et sièges au fil du temps</h2>
@@ -160,5 +178,6 @@
 <script src="js/portrait.js"></script>
 <script src="js/demo.js"></script>
 <script src="js/absurde.js"></script>
+<script src="js/profil.js"></script>
 </body>
 </html>
