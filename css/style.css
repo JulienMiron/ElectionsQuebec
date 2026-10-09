@@ -181,3 +181,4 @@ footer p{max-width:100ch}
 .pf-d{text-align:right;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .pf-d.up{color:var(--ink)}.pf-d.down{color:var(--ink2)}
 @media(max-width:640px){.pf-row{grid-template-columns:1fr 7ch 7ch;grid-template-areas:"n v d" "b b b"}.pf-name{grid-area:n}.pf-bar{grid-area:b}.pf-v{grid-area:v}.pf-d{grid-area:d}}
+.pf-chart{width:100%;height:auto;display:block;margin-top:4px}

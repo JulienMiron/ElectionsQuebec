@@ -22,12 +22,27 @@ function compute() {
 }
 function draw() {
   const {res, eff, top} = compute(), max = Math.max(40, Math.ceil(Math.max(...res.map(r => r.v), ...Object.values(avg)) / 10) * 10);
-  $("#pf-out").innerHTML = res.map((r, i) => {
-    const d = r.v - avg[r.k];
-    return `<li class="pf-row"><span class="pf-name"><span class="chip" style="background:${col(r.k)}"></span>${esc(NAMES[r.k])}</span>
-      <span class="pf-bar"><b style="width:${r.v / max * 100}%;background:${col(r.k)}"></b><i style="left:${avg[r.k] / max * 100}%" title="Moyenne du Québec : ${nf(avg[r.k], 1)} %"></i></span>
-      <span class="pf-v">${nf(r.v, 1)} %</span><span class="pf-d ${d > 0.5 ? "up" : d < -0.5 ? "down" : ""}">${Math.abs(d) < 0.5 ? "≈" : (d > 0 ? "+" : "−") + nf(Math.abs(d), 1)}</span></li>`;
-  }).join("");
+  const w = Math.max(320, $("#pf-out").clientWidth || 640), h = w < 480 ? 300 : 340, m = {l: 40, r: 10, t: 24, b: w < 480 ? 62 : 46};
+  const svg = d3.select("#pf-out").attr("viewBox", `0 0 ${w} ${h}`); svg.selectAll("*").remove();
+  const x = d3.scaleBand().domain(res.map(r => r.k)).range([m.l, w - m.r]).padding(0.28);
+  const y = d3.scaleLinear().domain([0, max]).range([h - m.b, m.t]);
+  y.ticks(5).forEach(t => {
+    svg.append("line").attr("x1", m.l).attr("x2", w - m.r).attr("y1", y(t)).attr("y2", y(t)).style("stroke", "var(--line)");
+    svg.append("text").attr("x", m.l - 6).attr("y", y(t) + 4).attr("text-anchor", "end").style("font", "11px var(--f-body)").style("fill", "var(--muted)").text(t + " %");
+  });
+  const g = svg.selectAll("g.pb").data(res, d => d.k).join("g").attr("class", "pb");
+  g.append("rect").attr("x", d => x(d.k)).attr("width", x.bandwidth()).attr("y", d => y(d.v)).attr("height", d => h - m.b - y(d.v)).attr("rx", 3).style("fill", d => col(d.k))
+    .append("title").text(d => `${NAMES[d.k]} : ${nf(d.v, 1)} % (moyenne du Québec : ${nf(avg[d.k], 1)} %)`);
+  g.append("line").attr("x1", d => x(d.k) - 4).attr("x2", d => x(d.k) + x.bandwidth() + 4).attr("y1", d => y(avg[d.k])).attr("y2", d => y(avg[d.k])).style("stroke", "var(--ink)").style("stroke-width", 2).style("stroke-dasharray", "4 3");
+  g.append("text").attr("x", d => x(d.k) + x.bandwidth() / 2).attr("y", d => Math.min(y(d.v), y(avg[d.k])) - 6).attr("text-anchor", "middle").style("font", "600 13px var(--f-body)").style("fill", "var(--ink)").text(d => nf(d.v, 1) + " %");
+  g.each(function (d) {
+    const t = d3.select(this).append("text").attr("text-anchor", "middle").style("font", "12px var(--f-body)").style("fill", "var(--ink2)");
+    const words = (w < 480 ? d.k === "AUT" ? "Autres" : d.k : NAMES[d.k]).split(" "), cx = x(d.k) + x.bandwidth() / 2;
+    const lines = []; let cur = "";
+    words.forEach(wd => { if ((cur + " " + wd).trim().length > (x.bandwidth() > 90 ? 16 : 11) && cur) { lines.push(cur); cur = wd; } else cur = (cur + " " + wd).trim(); });
+    lines.push(cur);
+    lines.forEach((l, i) => t.append("tspan").attr("x", cx).attr("y", h - m.b + 18 + i * 14).text(l));
+  });
   $("#pf-top").textContent = `Circonscriptions qui pèsent le plus dans le résultat : ${top.map(t => `${t.n} (${nf(t.x * 100)} %)`).join(", ")}. En tout, ce profil donne un poids réel à l'équivalent d'environ ${nf(eff)} circonscriptions sur ${D.n}.`;
   $("#pf-age-v").textContent = `${S.age} ans`;
   $("#pf-rev-v").textContent = S.rev >= 200000 ? "200 000 $ et plus" : `${nf(S.rev)} $`;
@@ -41,5 +56,6 @@ function init() {
   avg = Object.fromEntries(Object.keys(NAMES).map(k => [k, D.ridings.reduce((a, r) => a + r.pop * r.sh[k], 0) / tp]));
   draw();
 }
+let _t; addEventListener("resize", () => { clearTimeout(_t); _t = setTimeout(() => D && draw(), 150); });
 fetch("data/profil.json").then(r => r.json()).then(d => { D = d; init(); }).catch(e => { $("#pf-top").textContent = "Impossible de charger le simulateur."; console.error(e); });
 })();
